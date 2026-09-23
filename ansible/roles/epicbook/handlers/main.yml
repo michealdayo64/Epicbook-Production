@@ -1,0 +1,4 @@
+---
+- name: Restart EpicBook
+  ansible.builtin.command:
+    cmd: pm2 restart epicbook

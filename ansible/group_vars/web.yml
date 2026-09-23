@@ -1,0 +1,13 @@
+---
+app_port: 8080
+app_path: "/home/{{ ansible_user }}/theepicbook"
+app_repo: https://github.com/pravinmishraaws/theepicbook.git
+app_user: ubuntu
+
+db_host: "epicbook-mysql.c674qe0o2q4e.us-east-1.rds.amazonaws.com"
+db_user: "admin"
+db_password: "Silverspooon05_"
+db_name: "bookstore"
+jwt_secret: "your_jwt_secret"
+
+pm2_app_name: "epicbook"

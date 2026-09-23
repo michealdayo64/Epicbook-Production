@@ -1,0 +1,19 @@
+- name: Update the apt package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install required baseline packages
+  apt:
+    name:
+      - curl
+      - git
+      - unzip
+      - software-properties-common
+      - mysql-client
+      - nodejs
+      - npm
+      - python3
+      - python3-pymysql
+    state: present
+

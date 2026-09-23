@@ -1,0 +1,85 @@
+---
+- name: Clone or update EpicBook repository
+  ansible.builtin.git:
+    repo: "{{ app_repo }}"
+    dest: "{{ app_path }}"
+    version: main
+    update: true
+    force: true
+
+- name: Install EpicBook application dependencies
+  ansible.builtin.command:
+    cmd: npm install
+    chdir: "{{ app_path }}"
+  register: npm_install
+  changed_when: "'up to date' not in npm_install.stdout"
+
+- name: Configure EpicBook database connection
+  ansible.builtin.template:
+    src: config.json.j2
+    dest: "{{ app_path }}/config/config.json"
+    owner: "{{ app_user }}"
+    group: "{{ app_user }}"
+    mode: "0600"
+  notify: Restart EpicBook
+
+- name: Create EpicBook database
+  ansible.mysql.mysql_db:
+    name: "{{ db_name }}"
+    state: present
+    login_host: "{{ db_host }}"
+    login_user: "{{ db_user }}"
+    login_password: "{{ db_password }}"
+    login_port: 3306
+
+- name: Check whether the database schema has already been imported
+  ansible.builtin.command: >
+    mysql -h {{ db_host }} -u {{ db_user }} -p{{ db_password }} {{ db_name }}
+    -e "SHOW TABLES;"
+  register: epicbook_db_tables
+  changed_when: false
+  no_log: true
+
+- name: Import EpicBook SQL files into the managed database
+  ansible.builtin.shell: >
+    for f in {{ app_dest }}/db/*.sql; do
+      mysql -h {{ db_host }} -u {{ db_user }} -p{{ db_password }} {{ db_name }} < "$f";
+    done
+  when: epicbook_db_tables.stdout == ""
+  no_log: true
+
+
+- name: Install PM2 globally
+  community.general.npm:
+    name: pm2
+    global: true
+    state: present
+
+- name: Check if EpicBook is already running in PM2
+  ansible.builtin.command:
+    pm2 describe {{ pm2_app_name }}
+  register: pm2_describe
+  changed_when: false
+  failed_when: false
+
+- name: Delete existing PM2 process to apply current environment
+  ansible.builtin.command:
+    pm2 delete {{ pm2_app_name }}
+  when: pm2_describe.rc == 0
+
+- name: Start EpicBook with PM2
+  ansible.builtin.command:
+    pm2 start server.js --name {{ pm2_app_name }}
+  args:
+    chdir: "{{ app_path }}"
+  environment:
+    PORT: "{{ app_port }}"
+    NODE_ENV: development
+    JAWSDB_URL: "mysql://{{ db_user }}:{{ db_password }}@{{ db_host }}:3306/{{ db_name }}"
+  no_log: true
+
+
+- name: Save PM2 process list
+  ansible.builtin.command:
+    cmd: pm2 save
+  changed_when: false
