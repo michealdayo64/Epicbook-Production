@@ -1,3 +1,3 @@
 
-db_username = "admin"
-db_password = "Silverspooon05_"
+db_username = ""
+db_password = ""
