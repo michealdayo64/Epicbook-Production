@@ -1,9 +1,9 @@
 ---
-- name: Deploy EpicBook application
+- name: Install, start and enable Nginx
   hosts: web
   become: true
 
   roles:
-    - common
+    #- common
     - nginx
-    - epicbook
+    #- epicbook

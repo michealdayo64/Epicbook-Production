@@ -1,7 +1,7 @@
 variable "project_name" {
   description = "Project/resource name"
   type        = string
-  default     = "epicbook"
+  default     = "azure_devops"
 }
 
 
@@ -17,14 +17,14 @@ variable "public_subnet_cidr" {
   default     = "10.0.1.0/24"
 }
 
-variable "private_subnet_db_cidrs" {
+/*variable "private_subnet_db_cidrs" {
   description = "CIDR blocks for the private database subnets"
   type        = list(string)
   default = [
     "10.0.2.0/24",
     "10.0.3.0/24"
   ]
-}
+}*/
 
 variable "ipv4_anywhere" {
   description = "Any IP address from the internet"
@@ -38,11 +38,17 @@ variable "vm-security-group-name" {
   default     = "vm-security-group-name"
 }
 
-variable "db-security-group-name" {
+variable "agentpool-security-group-name" {
+  description = "Security group name for the web tier"
+  type        = string
+  default     = "agentpool-security-group-name"
+}
+
+/*variable "db-security-group-name" {
   description = "Security group name for the database tier"
   type        = string
   default     = "db-security-group-name"
-}
+}*/
 
 variable "key_name_vm" {
   description = "Name of the EC2 key pair for web tier"
@@ -62,7 +68,7 @@ variable "instance_type" {
   default     = "t2.micro"
 }
 
-variable "db_instance_class" {
+/*variable "db_instance_class" {
   description = "RDS instance class"
   type        = string
   default     = "db.t3.micro"
@@ -77,4 +83,4 @@ variable "db_password" {
   description = "Database administrator password"
   type        = string
   sensitive   = true
-}
+}*/

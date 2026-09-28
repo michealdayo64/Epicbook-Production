@@ -34,7 +34,7 @@ resource "aws_subnet" "public_subnet" {
 
 }
 
-resource "aws_subnet" "private_subnet_db_1" {
+/*resource "aws_subnet" "private_subnet_db_1" {
 
   vpc_id                  = aws_vpc.vpc.id
   cidr_block              = var.private_subnet_db_cidrs[0]
@@ -55,7 +55,7 @@ resource "aws_subnet" "private_subnet_db_2" {
   tags = {
     Name = "private-db-subnet-b"
   }
-}
+}*/
 
 #-----------------------------------------------
 # Internet Gateway
@@ -85,13 +85,13 @@ resource "aws_route_table" "public_rt" {
 
 }
 
-resource "aws_route_table" "private_rt" {
+/*resource "aws_route_table" "private_rt" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
     Name = "epicbook-private-route-table"
   }
-}
+}*/
 
 #----------------------------------------------------------------------
 # Route Tables Association
@@ -101,7 +101,7 @@ resource "aws_route_table_association" "rt_association_public_1" {
   route_table_id = aws_route_table.public_rt.id
 }
 
-resource "aws_route_table_association" "rt_association_private_1" {
+/*resource "aws_route_table_association" "rt_association_private_1" {
   subnet_id      = aws_subnet.private_subnet_db_1.id
   route_table_id = aws_route_table.private_rt.id
 }
@@ -109,14 +109,14 @@ resource "aws_route_table_association" "rt_association_private_1" {
 resource "aws_route_table_association" "rt_association_private_2" {
   subnet_id      = aws_subnet.private_subnet_db_2.id
   route_table_id = aws_route_table.private_rt.id
-}
+}*/
 
 #----------------------------------------------------------------
 # Security Groups
 #----------------------------------------------------------------
-resource "aws_security_group" "vm_sg" {
-  name        = var.vm-security-group-name
-  description = "Security group for EC2 instances"
+resource "aws_security_group" "vm_agentpool_sg" {
+  name        = var.agentpool-security-group-name
+  description = "Security group for agent pool instances"
   vpc_id      = aws_vpc.vpc.id
 
   # Allow SSH from your IP address
@@ -125,7 +125,8 @@ resource "aws_security_group" "vm_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["102.88.108.149/32"]
+    cidr_blocks = ["41.219.170.10/32"]
+    
   }
 
   # Allow HTTP from anywhere
@@ -146,12 +147,53 @@ resource "aws_security_group" "vm_sg" {
   }
 
   tags = {
-    Name = "epicbook-vm-sg"
+    Name = "agent-pool-vm-sg"
   }
 
 }
 
-resource "aws_security_group" "db_sg" {
+
+resource "aws_security_group" "vm_sg" {
+  name        = var.vm-security-group-name
+  description = "Security group for EC2 instances"
+  vpc_id      = aws_vpc.vpc.id
+
+  # Allow SSH from your IP address
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    #cidr_blocks = ["41.219.170.10/32"]
+    security_groups = [aws_security_group.vm_agentpool_sg.id]
+  }
+
+  # Allow HTTP from anywhere
+  ingress {
+    description = "HTTP"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = [var.ipv4_anywhere]
+  }
+
+  # Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "vm-sg"
+  }
+
+}
+
+
+
+/*resource "aws_security_group" "db_sg" {
   name        = var.db-security-group-name
   description = "Security group for rds database"
   vpc_id      = aws_vpc.vpc.id
@@ -178,7 +220,7 @@ resource "aws_security_group" "db_sg" {
     Name = "epicbook-db-sg"
   }
 
-}
+}*/
 
 
 data "aws_ami" "ubuntu" {
@@ -219,7 +261,7 @@ resource "aws_key_pair" "deployer1" {
 }
 
 # Create EC2 Instance
-resource "aws_instance" "epicbook_vm" {
+resource "aws_instance" "vm_ec2" {
 
   ami           = data.aws_ami.ubuntu.id
   instance_type = var.instance_type
@@ -236,11 +278,32 @@ resource "aws_instance" "epicbook_vm" {
 
 
   tags = {
-    Name = "${var.project_name}-ec2-web"
+    Name = "${var.project_name}-vm"
   }
 }
 
-resource "aws_db_subnet_group" "epicbook_subnet_group" {
+resource "aws_instance" "vm_agentpool" {
+
+  ami           = data.aws_ami.ubuntu.id
+  instance_type = var.instance_type
+
+  subnet_id = aws_subnet.public_subnet.id
+
+  vpc_security_group_ids = [
+    aws_security_group.vm_agentpool_sg.id
+  ]
+
+  key_name = aws_key_pair.deployer1.key_name
+
+  associate_public_ip_address = true
+
+
+  tags = {
+    Name = "${var.project_name}-vm_agentpool"
+  }
+}
+
+/*resource "aws_db_subnet_group" "epicbook_subnet_group" {
   #count       = length(var.private_subnet_db_cidrs)
   name        = "${var.project_name}-db-subnet-group"
   description = "DB subnet group for EpicBook RDS"
@@ -294,5 +357,5 @@ resource "aws_db_instance" "book_review_db" {
   tags = {
     Name = "${var.project_name}-mysql"
   }
-}
+}*/
 
