@@ -1,0 +1,71 @@
+
+- name: Update apt cache
+  apt:
+    update_cache: yes
+
+- name: Ensure Nginx is installed
+  apt:
+    name: nginx
+    state: present
+
+- name: Ensure Nginx is running and enabled
+  service:
+    name: nginx
+    state: started
+    enabled: true
+
+- name: Clear existing website content from /var/www/html
+  ansible.builtin.shell: rm -rf /var/www/html/*
+
+- name: Ensure /var/www/html exists with correct ownership
+  file:
+    path: /var/www/html
+    state: directory
+    owner: ubuntu
+    group: www-data
+    mode: '0755'
+
+- name: Set password for ubuntu user
+  user:
+    name: ubuntu
+    password: "{{ vm_password | password_hash('sha512') }}"
+
+- name: Enable password authentication in sshd_config
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+  notify: Restart SSH
+
+- name: Override cloud-init SSH password auth restriction
+  lineinfile:
+    path: /etc/ssh/sshd_config.d/60-cloudimg-settings.conf
+    regexp: '^PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+  notify: Restart SSH
+
+- name: Configure Nginx for React SPA routing
+  copy:
+    dest: /etc/nginx/sites-available/default
+    content: |
+      server {
+          listen 80;
+          server_name _;
+          root /var/www/html;
+          index index.html;
+
+          location / {
+              try_files $uri /index.html;
+          }
+
+          error_page 404 /index.html;
+      }
+  notify: Restart Nginx
+
+
+
+
+
+
+
+

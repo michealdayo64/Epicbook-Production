@@ -62,10 +62,16 @@ variable "vm_public_key" {
   default     = "~/.ssh/id_ed25519.pub"
 }
 
-variable "instance_type" {
+variable "instance_type_vm" {
   description = "EC2 instance type"
   type        = string
   default     = "t2.micro"
+}
+
+variable "instance_type_agent" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "t3.small"
 }
 
 /*variable "db_instance_class" {

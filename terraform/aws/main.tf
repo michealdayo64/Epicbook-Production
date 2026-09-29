@@ -128,8 +128,8 @@ resource "aws_security_group" "vm_agentpool_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["162.120.188.117/32"]
-    
+    cidr_blocks = ["102.89.75.85/32"]
+
   }
 
   # Allow HTTP from anywhere
@@ -167,7 +167,7 @@ resource "aws_security_group" "vm_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["162.120.188.117/32"]
+    cidr_blocks = ["102.89.75.85/32"]
   }
 
   # Allow SSH from your agentpool address
@@ -275,7 +275,7 @@ resource "aws_key_pair" "deployer1" {
 resource "aws_instance" "vm_ec2" {
 
   ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
+  instance_type = var.instance_type_vm
 
   subnet_id = aws_subnet.public_subnet.id
 
@@ -296,7 +296,7 @@ resource "aws_instance" "vm_ec2" {
 resource "aws_instance" "vm_agentpool" {
 
   ami           = data.aws_ami.ubuntu.id
-  instance_type = var.instance_type
+  instance_type = var.instance_type_agent
 
   subnet_id = aws_subnet.public_subnet.id
 

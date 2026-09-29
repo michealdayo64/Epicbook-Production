@@ -1,1 +1,30 @@
-- name: Agent Pool
+---
+- name: Install Node.js and npm on the agent
+  hosts: agent
+  become: true
+
+  tasks:
+  - name: Update apt cache
+    apt:
+      update_cache: yes
+
+  - name: Install Node.js and npm
+    apt:
+      name:
+        - nodejs
+        - npm
+      state: present
+
+  - name: Confirm Node.js version
+    command: node -v
+    register: node_version
+    changed_when: false
+
+  - name: Confirm npm version
+    command: npm -v
+    register: npm_version
+    changed_when: false
+
+  - name: Display versions
+    debug:
+      msg: "Node.js {{ node_version.stdout }}, npm {{ npm_version.stdout }}"

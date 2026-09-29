@@ -1,8 +1,9 @@
-- name: Install, start and enable Nginx
+- name: Prepare Nginx for React app deployment
   hosts: web
   become: true
 
   roles:
     #- common
-    - nginx
+    - react-nginx
+    #- nginx
     #- epicbook
