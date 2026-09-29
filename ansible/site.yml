@@ -1,4 +1,3 @@
----
 - name: Install, start and enable Nginx
   hosts: web
   become: true

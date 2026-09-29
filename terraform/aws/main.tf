@@ -57,6 +57,7 @@ resource "aws_subnet" "private_subnet_db_2" {
   }
 }*/
 
+
 #-----------------------------------------------
 # Internet Gateway
 #-----------------------------------------------
@@ -93,6 +94,7 @@ resource "aws_route_table" "public_rt" {
   }
 }*/
 
+
 #----------------------------------------------------------------------
 # Route Tables Association
 #----------------------------------------------------------------------
@@ -111,6 +113,7 @@ resource "aws_route_table_association" "rt_association_private_2" {
   route_table_id = aws_route_table.private_rt.id
 }*/
 
+
 #----------------------------------------------------------------
 # Security Groups
 #----------------------------------------------------------------
@@ -125,7 +128,7 @@ resource "aws_security_group" "vm_agentpool_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    cidr_blocks = ["41.219.170.10/32"]
+    cidr_blocks = ["162.120.188.117/32"]
     
   }
 
@@ -164,7 +167,15 @@ resource "aws_security_group" "vm_sg" {
     from_port   = 22
     to_port     = 22
     protocol    = "tcp"
-    #cidr_blocks = ["41.219.170.10/32"]
+    cidr_blocks = ["162.120.188.117/32"]
+  }
+
+  # Allow SSH from your agentpool address
+  ingress {
+    description = "SSH"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
     security_groups = [aws_security_group.vm_agentpool_sg.id]
   }
 
